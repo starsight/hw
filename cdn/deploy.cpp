@@ -88,7 +88,9 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 	graph.printGraph();
 	graph.addServer(server);
 	graph.printGraph();*/
-	start( consumer,graph, base,edge);
+
+	Search search(base.node_num,5);
+	search.start( consumer,graph, base,edge);
 
 
 

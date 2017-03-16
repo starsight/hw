@@ -100,5 +100,27 @@ class Graph
 
 
 };
-void start(vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge);
 
+class Search
+{
+	private:
+	int wait_for_choose;
+	int choose_num;
+
+	 int a[1000];
+
+	vector<int> temp_save;
+	vector<vector<int>> save;
+	int max_need;
+	int min_cost;//
+	vector<int>  server0,server,min_server;
+
+	public:
+	Search(){}
+	Search(int wait_for_choose,int choose_num);
+	~Search(){}
+	int  comb(int m,int k);//(C(m,k));
+	void start(vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge);
+
+
+};

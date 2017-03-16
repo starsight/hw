@@ -1,5 +1,5 @@
-﻿#include "Graph.h"
- 
+#include "Graph.h"
+
 
 Graph::Graph(int node_num,int edge_num,int consumer_num) :edgecount(0),node_num(node_num),edge_num(edge_num),consumer_num(consumer_num)
 {
@@ -61,7 +61,7 @@ void Graph::getNodeCap()
 		}
 		nodecap.push_back(temp_cap);
 	}
-//	sort(nodecap.begin(), nodecap.end(), node_degree::decrease);
+	sort(nodecap.begin(), nodecap.end(), node_degree::decrease);
 	
 }
 void Graph::getNodeDegree()
@@ -96,6 +96,7 @@ void Graph::removeG()
 	memset(head, -1, sizeof(head));
 	memset(next, -1, sizeof(next));
 	memset(edge, 0, sizeof(edge));
+
 }
 void Graph::printGraph()
 {
@@ -129,8 +130,7 @@ bool Graph::spfa(int s, int t)
 	memset(inq, 0, sizeof(inq));
 	memset(dis, 0x3f, sizeof(dis));
 	memset(pre, -1, sizeof(pre));
-	//memset(in, 0, sizeof(in));
-
+	memset(in, 0, sizeof(in));
 	dis[s] = 0; inq[s] = true;
 	int fron = 0, rear = 0;
 	q[rear++] = s;
@@ -138,7 +138,7 @@ bool Graph::spfa(int s, int t)
 		int u = q[fron%MAXNODE]; fron++;
 		inq[u] = false;
 		for (int i = head[u]; i != -1; i = next[i]) {
-			int v = edge[i].to;
+			int v= edge[i].to;
 			if (edge[i].cap > 0 && dis[v] > dis[u] + edge[i].cost)
 			{
 				dis[v] = dis[u] + edge[i].cost;
@@ -146,24 +146,27 @@ bool Graph::spfa(int s, int t)
 				if (!inq[v])
 				{
 					in[v]++;
-					if (in[v] > edgecount) return true;
+				//	if (in[v] > edgecount) return true;
 					inq[v] = true;
 					q[rear%MAXNODE] = v; rear++;
+
 				}
 			}
 		}
 	}
 	return dis[t] < INF;
+
 }
 min_max Graph::EK(int s,int t)
 {
 	min_max ret={0,0};
+
 	while (spfa(s,t)) {
 
 		int mini = INF;
 		for (int i = t; i != s; i = pre[i])
 		{
-//cout<<"here";
+
 			mini = min(mini, edge[path[i]].cap);
 
 		}
@@ -186,13 +189,23 @@ min_max Graph::EK(int s,int t)
 }
 
 /*****组合****************/
-int a[100];
-int save[100][3];
-int  comb(int m,int k)//(C(m,k))
+
+ Search::Search( int m,int k):wait_for_choose(m),choose_num(k),max_need(0),min_cost(INF)
+ {
+	temp_save.resize(k);
+	a[0]=k;
+	server0.resize(m);
+	server.resize(k);
+	min_server.resize(k);
+}
+int  Search::comb(int m,int k)//(C(m,k))
 {
 	static int count;
+
     int i,j;
-    for (i=m;i>=k;i--)
+
+
+   for (i=m;i>=k;i--)
     {
         a[k]=i;
         if (k>1)
@@ -204,38 +217,40 @@ int  comb(int m,int k)//(C(m,k))
             count++;
             for (j=a[0];j>0;j--)
             {
-              // cout<<a[j]<<" ";
-               save[count-1][j-1]=a[j];
+
+               temp_save[j-1]=a[j];
             }
-            //cout<<endl;
+
+            save.push_back(temp_save);
+         //cout<<temp_save[0]<<temp_save[1]<<temp_save[2]<<endl;
 
         }
     }
 
     return count;
 }
-void start(vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge)
+void Search::start(vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge)
 {
-	int  server0[8]={0};
-	int max_need=0;
-	int min=INF;
+
 	min_max temp={0,0};
-	vector<int> server(3);
-	int min_server[3]={0};
-	a[0]=3;
+
 	for(auto it=consumer.begin();it!=consumer.end();it++)
 	{
 		max_need+=(*it).need;
 	}
+
 	graph.getNodeDegree();
-	for(int i=0;i<8;i++)
+	graph.getNodeCap();
+
+	for(int i=0;i<wait_for_choose;i++)
 	{
-		server0[i]=graph.nodedegree[i].nodeID;
+		//server0[i]=graph.nodedegree[i].nodeID;
+		server0[i]=graph.nodecap[i].nodeID;
+		cout<<graph.nodedegree[i].nodeID<<" "<<graph.nodecap[i].nodeID<<endl;
 	}
 
-	int num=comb(8,3);
-//	for(int i=0;i<num;i++)
-//	cout<<save[i][0]<<" "<<save[i][1]<<" "<<save[i][2]<<endl;
+
+	int num=comb(wait_for_choose,choose_num);
 	for(int i=0;i<num;i++)
 	{
 		cout<<"第"<<i<<"次"<<endl;
@@ -243,29 +258,34 @@ void start(vector<consumer_information> consumer,Graph graph,base_information ba
 		//graph.createG(edge);
 		graph.addConsumer(consumer);
 		cout<<"新服务器编号: ";
-		for(int j=0;j<3;j++)
+		for(int j=0;j<choose_num;j++)
 		{
 			server[j]=server0[save[i][j]-1];
 			cout<<server[j]<<" ";
 		}
 		cout<<endl;
 		graph.addServer(server);
-	//	graph_temp->printGraph();
+	//	graph.printGraph();
 		temp=graph.EK(graph.node_num , graph.node_num+1);
+
 		cout<<temp.price<<" "<<temp.flow<<endl;
-		if(temp.price<min&&temp.flow>=max_need)
+		if(temp.price<min_cost&&temp.flow>=max_need)
 			{
-				min=temp.price;
-				min_server[0]=server[0];
-				min_server[1]=server[1];
-				min_server[2]=server[2];
+				min_cost=temp.price;
+				for(int c=0;c<choose_num;c++)
+					min_server[c]=server[c];
+
 			}
 		graph.removeG();
 		graph.createG(edge);
 	}
-	cout<<"min cost:"<<min<<endl;
+	min_cost+=choose_num*base.server_cost;
+	cout<<"min cost:"<<min_cost<<endl;
 	cout<<"server: ";
-	cout<<min_server[0]<<" "<<min_server[1]<<" "<<min_server[2]<<endl;
+	for(int n=0;n<choose_num;n++)
+		cout<<min_server[n]<<endl;
+	cout<<endl;
+	cout<<max_need<<endl;
 
 }
 
