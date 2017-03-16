@@ -129,6 +129,8 @@ bool Graph::spfa(int s, int t)
 	memset(inq, 0, sizeof(inq));
 	memset(dis, 0x3f, sizeof(dis));
 	memset(pre, -1, sizeof(pre));
+	//memset(in, 0, sizeof(in));
+
 	dis[s] = 0; inq[s] = true;
 	int fron = 0, rear = 0;
 	q[rear++] = s;
