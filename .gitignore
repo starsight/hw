@@ -1,3 +1,5 @@
 .metadata/*
 RemoteSystemsTempFiles/*
+bin/*
+build/*
 cdn.tar.gz
