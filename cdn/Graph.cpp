@@ -1,5 +1,5 @@
-#include "Graph.h"
-
+﻿#include "Graph.h"
+ 
 
 Graph::Graph(int node_num,int edge_num,int consumer_num) :edgecount(0),node_num(node_num),edge_num(edge_num),consumer_num(consumer_num)
 {
