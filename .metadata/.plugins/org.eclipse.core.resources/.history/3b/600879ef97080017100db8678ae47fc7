@@ -1,0 +1,93 @@
+#pragma once
+#include <vector>
+#include<algorithm>
+#include <iostream>
+#include <string.h>
+#include"deploy.h"
+//const int  MAXEDGE = 10000;
+const int MAXNODE = 1000;
+const int  INF= 0x3f3f3f3f;
+
+struct Edge
+{
+	int from;
+	int to;
+	int cost;
+	int cap;
+};
+class node_degree
+{
+public:
+	int nodeID;
+	int degree;
+	node_degree() :nodeID(0), degree(0) {}
+	~node_degree() {}
+	node_degree(int a, int b)
+	{
+		nodeID = a;
+		degree = b;
+	}
+	// 规定对象排序的算法：先按照 a 从小到大排序；如果 a 相等，则按照 b 从小到大排序
+	bool operator<(const node_degree &bar)
+	{
+		if (this->nodeID < bar.nodeID)
+		{
+			return true;
+		}
+		else if (this->nodeID == bar.nodeID)
+		{
+			return this->degree < bar.degree;
+		}
+		return false;
+	}
+
+	// 规定对象排序的算法：先按照 a 从大到小排序；如果 a 相等，则按照 b 从大到小排序
+	bool static decrease(const node_degree &foo1, const node_degree &foo2)
+	{
+		if (foo1.degree > foo2.degree)
+		{
+			return true;
+		}
+		else if (foo1.degree == foo2.degree)
+		{
+			return foo1.nodeID > foo2.nodeID;
+		}
+		return false;
+	}
+
+
+
+};
+class Graph
+{
+	private:
+		int  edgecount;
+		int node_num, edge_num, consumer_num;
+	public:
+		int head[MAXNODE],next[MAX_EDGE_NUM];
+		int pre[MAXNODE], path[MAXNODE], dis[MAXNODE], q[MAXNODE], in[MAXNODE];
+		bool inq[MAXNODE];
+
+		Edge edge[MAX_EDGE_NUM];
+		std::vector<node_degree> nodecap;
+		std::vector<node_degree> nodedegree;
+		
+		Graph() {}
+		Graph(int node_num, int edge_num,int consumer_num);
+		~Graph(){}
+		void addedge(int from,int to,int cost,int cap);
+		void createG(vector<edge_information> net);
+		void addConsumer(vector<consumer_information> consumer);
+		void addServer(vector<int> server);
+		void printGraph();
+		int getEdgecount();
+		void getNodeCap();
+		void getNodeDegree();
+		bool spfa(int s,int t);
+		int EK(int s, int t);
+		vector<node_degree> getTotal();
+
+
+		
+
+};
