@@ -81,7 +81,23 @@ void Graph::getNodeDegree()
 	}
 	sort(nodedegree.begin(), nodedegree.end(), node_degree::decrease);
 }
+void Graph::getRank()
+{
+	for (int i=0; i < node_num; i++)
+		{
+			node_degree temp_rank;
+			int k = head[i];
 
+			temp_rank.nodeID = i;
+			while (k!= -1)
+			{
+				temp_rank.degree+= int(edge[k].cap*edge[k].cost);
+				k = next[k];
+			}
+			noderank.push_back(temp_rank);
+		}
+		sort(noderank.begin(), noderank.end(), node_degree::decrease);
+}
 void Graph::createG(vector<edge_information> net)
 {
 	for (auto it = net.begin(); it != net.end(); it++)
@@ -157,10 +173,11 @@ bool Graph::spfa(int s, int t)
 	return dis[t] < INF;
 
 }
-min_max Graph::EK(int s,int t)
+min_max Graph::EK(int s,int t,vector<Path_Need> &path_save)
 {
+	vector<Path_Need> ().swap(path_save);
 	min_max ret={0,0};
-
+	Path_Need temp;
 	while (spfa(s,t)) {
 
 		int mini = INF;
@@ -170,27 +187,41 @@ min_max Graph::EK(int s,int t)
 			mini = min(mini, edge[path[i]].cap);
 
 		}
-		cout << t<<"<--";
+	//	cout << t<<"<--";
 		for (int i = t; i != s; i = pre[i]) {
-			cout << edge[path[i]].from << "<--";
+			//cout << edge[path[i]].from << "<--";
+				temp.path.push_back( edge[path[i]].from);
 			edge[path[i]].cap -= mini;
 			edge[path[i] ^ 1].cap += mini;
 		}
-		
-		cout << endl;
+		temp.path.pop_back();
+		reverse(temp.path.begin(),temp.path.end());
+		int consumer_id=find(consumer_related_Node.begin(),consumer_related_Node.end(),*(temp.path.end()-1))-consumer_related_Node.begin();
+				temp.path.push_back(consumer_id);
+		//cout << endl;
 		ret.price += mini * dis[t];
 		ret.flow += mini;
-		cout <<"MINI:"<< mini << endl;
-
+		//	cout <<"MINI:"<< mini << endl;
+		temp.need=mini;
+		path_save.push_back(temp);
+		vector<int> ().swap(temp.path);//clear path_temp
+		temp.need=0;
 	}
 //	cout << "flow:" << ret.flow << endl;
 //	cout << ret << endl;
 	return ret;
 }
+void Graph::getConsumerdata(vector<consumer_information> consumer)
+{
+	 for (auto iter=consumer.begin();iter!=consumer.end();iter++)
+	{
+		 consumer_related_Node.push_back((*iter).connect_ID);
+	}
+}
 
 /*****组合****************/
 
- Search::Search( int m,int k):wait_for_choose(m),choose_num(k),max_need(0),min_cost(INF)
+ Search::Search( int m,int k):wait_for_choose(m),choose_num(k),max_need(0),min_cost(INF),find_flag(false)
  {
 	temp_save.resize(k);
 	a[0]=k;
@@ -232,6 +263,7 @@ int  Search::comb(int m,int k)//(C(m,k))
 void Search::start(vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge)
 {
 
+	vector<Path_Need> path_need_temp;//temp
 	min_max temp={0,0};
 
 	for(auto it=consumer.begin();it!=consumer.end();it++)
@@ -241,12 +273,12 @@ void Search::start(vector<consumer_information> consumer,Graph graph,base_inform
 
 	graph.getNodeDegree();
 	graph.getNodeCap();
-
+	graph.getRank();
 	for(int i=0;i<wait_for_choose;i++)
 	{
 		//server0[i]=graph.nodedegree[i].nodeID;
 		server0[i]=graph.nodecap[i].nodeID;
-		cout<<graph.nodedegree[i].nodeID<<" "<<graph.nodecap[i].nodeID<<endl;
+		//cout<<graph.nodedegree[i].nodeID<<" "<<graph.nodecap[i].nodeID<<" "<< graph.noderank[i].nodeID<<endl;
 	}
 
 
@@ -257,20 +289,24 @@ void Search::start(vector<consumer_information> consumer,Graph graph,base_inform
 
 		//graph.createG(edge);
 		graph.addConsumer(consumer);
-		cout<<"新服务器编号: ";
+	//	cout<<"新服务器编号: ";
 		for(int j=0;j<choose_num;j++)
 		{
 			server[j]=server0[save[i][j]-1];
-			cout<<server[j]<<" ";
+			//cout<<server[j]<<" ";
 		}
-		cout<<endl;
+		//cout<<endl;
+		//server={0,3,22};
 		graph.addServer(server);
 	//	graph.printGraph();
-		temp=graph.EK(graph.node_num , graph.node_num+1);
-
-		cout<<temp.price<<" "<<temp.flow<<endl;
+		temp=graph.EK(graph.node_num , graph.node_num+1,path_need_temp);
+		//cout<<temp.price<<" "<<temp.flow<<endl;
 		if(temp.price<min_cost&&temp.flow>=max_need)
 			{
+				find_flag=true;
+				vector<Path_Need> ().swap(path_need);
+				path_need.swap(path_need_temp);
+
 				min_cost=temp.price;
 				for(int c=0;c<choose_num;c++)
 					min_server[c]=server[c];
@@ -279,13 +315,58 @@ void Search::start(vector<consumer_information> consumer,Graph graph,base_inform
 		graph.removeG();
 		graph.createG(edge);
 	}
-	min_cost+=choose_num*base.server_cost;
+	if(find_flag==true)
+	{
+		min_cost+=choose_num*base.server_cost;
+
+	for(auto it=path_need.begin();it!=path_need.end();it++)
+			{
+				cout<<"path: ";
+				for(auto it2=(*it).path.begin();it2!=(*it).path.end();it2++)
+				{
+					cout<<*it2<<" ";
+				}
+				cout<<"need: "<<(*it).need<<endl;
+			}
 	cout<<"min cost:"<<min_cost<<endl;
 	cout<<"server: ";
 	for(int n=0;n<choose_num;n++)
-		cout<<min_server[n]<<endl;
+		cout<<min_server[n]<<" ";
 	cout<<endl;
-	cout<<max_need<<endl;
+	cout<<"max need:"<<max_need<<endl;
+	}
+	else
+	{
+		cout<<"NA"<<endl;
+	}
+}
 
+string outputData(vector<Path_Need> path_need,bool find_flag)
+{
+	string res;
+	char a[20];
+	if(find_flag==true)
+	 {
+		sprintf(a, "%d\n\n",(int)path_need.size());
+
+	 res = a;
+	 for(auto it=path_need.begin();it!=path_need.end();it++)
+	 {
+
+	 	for(auto it2=(*it).path.begin();it2!=(*it).path.end();it2++)
+	 	{
+	 		 sprintf(a, "%d ",*it2);
+	 		res += a;
+	 	}
+	 	 sprintf(a, "%d",(*it).need);
+	 	res += a;
+	 	res += "\n";
+	 }
+	 }
+	else
+	{
+		res +="NA";
+	}
+	 return res;
 }
 
