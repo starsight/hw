@@ -170,17 +170,17 @@ min_max Graph::EK(int s,int t)
 			mini = min(mini, edge[path[i]].cap);
 
 		}
-	//	cout << t<<"<--";
+		cout << t<<"<--";
 		for (int i = t; i != s; i = pre[i]) {
-		//	cout << edge[path[i]].from << "<--";
+			cout << edge[path[i]].from << "<--";
 			edge[path[i]].cap -= mini;
 			edge[path[i] ^ 1].cap += mini;
 		}
 		
-	//	cout << endl;
+		cout << endl;
 		ret.price += mini * dis[t];
 		ret.flow += mini;
-	//	cout <<"MINI:"<< mini << endl;
+		cout <<"MINI:"<< mini << endl;
 
 	}
 //	cout << "flow:" << ret.flow << endl;
