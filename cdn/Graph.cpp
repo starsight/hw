@@ -16,7 +16,7 @@ void Graph::addEdge(int from, int to, int cap,int cost )
 	edge[edgecount].cost = cost;
 	next[edgecount] = head[from];
 	head[from] = edgecount++;
-	// head 由该点可以到达的边的序号 同时通过next数组，找到所有的这样的边;边的序号越低，添加时间越早，同时也越晚被搜索到
+	// head--由该点可以到达的边的序号 同时通过next数组，找到所有的这样的边;边的序号越低，添加时间越早，同时也越晚被搜索到
 
 	edge[edgecount].from = to;
 	edge[edgecount].to = from;
@@ -152,12 +152,12 @@ bool Graph::spfa(int s, int t)
 
 	dis[s] = 0; inqueue[s] = true;
 	int front = 0, rear = 0;
-	q[rear++] = s;//q-->存放点的队列，队列为空，循环结束
+	q[rear++] = s;//q--存放点的队列，队列为空，循环结束
 	while (front < rear) {
 		int u = q[front%MAXNODE]; //循环队列
 		front++;
 		inqueue[u] = false;
-		for (int i = head[u]; i != -1; i = next[i]) {// head 由该点可以到达的边的序号 同时通过next数组，找到所有的这样的边
+		for (int i = head[u]; i != -1; i = next[i]) {// head--由该点可以到达的边的序号 同时通过next数组，找到所有的这样的边
 			int v= edge[i].to;//第i条边的终点
 			if (edge[i].cap > 0 && dis[v] > dis[u] + edge[i].cost)
 			{
@@ -167,10 +167,11 @@ bool Graph::spfa(int s, int t)
 				if (!inqueue[v])
 				{
 					in[v]++;//破负环
-				//	if (in[v] > edgecount) return true;
+					if (in[v] > edgecount) 
+						return true;
 					inqueue[v] = true;
-					q[rear%MAXNODE] = v; rear++;
-
+					q[rear%MAXNODE] = v; 
+					rear++;
 				}
 			}
 		}
