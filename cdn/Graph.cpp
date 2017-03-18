@@ -436,7 +436,7 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 	vector<Path_Need> path_need_temp;//temp
 	min_max res={0,0},pre_res={0,0},new_res={0,0};
 	int co=server0.size();
-	int temperature=5*co;
+        int temperature=100*co;
 	float zero=1e-2;
 	int iter=5e2;
 	vector<int> tmp_server;
