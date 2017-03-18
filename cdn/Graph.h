@@ -5,10 +5,12 @@
 #include <string.h>
 #include"deploy.h"
 #include<memory>
+#include <ctime>
+#include <cstdlib>
 //const int  MAXEDGE = 10000;
 const int MAXNODE = 1000;
 const int  INF= 0x3f3f3f3f;
-
+#include <math.h>
 struct Edge//邻接列表的信息
 {
 	int from;
@@ -102,7 +104,7 @@ class Graph
 		void getNodeCap();//获取各个节点的容量
 		void getNodeDegree();//获取各个节点的度（出度+入度）
 		bool spfa(int s,int t);
-		min_max EK(int s, int t,vector<Path_Need> &path_save);//计算最小费最大流
+		min_max EK(int s, int t,vector<Path_Need> &path_save,int max_need);//计算最小费最大流
 		void removeG();//清空图
 		void getConsumerdata(vector<consumer_information> consumer);//获得消费节点的有关信息
 		/*****有待添加*****/
@@ -122,9 +124,10 @@ class Search
 	vector<vector<int>> save;//存储所有组合情况
 	int max_need;//所有消费节点的最大需求
 	int min_cost;//最小费用
-	vector<int>  server0,server,min_server;//服务器编号
+
 
 	public:
+	vector<int>  server0,server,min_server;//服务器编号
 	bool find_flag;//是否找到最优解的标志
 	vector<Path_Need> path_need;//存储路径和提供的带宽
 	Search(){}
@@ -132,7 +135,12 @@ class Search
 	~Search(){}
 	int  comb(int m,int k);//(C(m,k));
 	void start(vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge);
+	void setServerInit(int node_num);
+	int runEzSA(vector<int> &server,vector<int> server0,vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge);// mo ni tui huo
+	vector<int> randSever(int node_num);
+	double random(double start, double end);
 
 
 };
 string outputData(vector<Path_Need> path_need,bool flag);//生成输出的格式
+

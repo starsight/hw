@@ -62,13 +62,15 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 	定义：虚拟原点编号为节点数，虚拟汇点编号为节点数+1
 	*/
     Graph graph(base.node_num, base.edge_num, base.consumer_num);//图初始化
-	graph.createG(edge);//建立基本的网络
+	//graph.createG(edge);//建立基本的网络
+
 	graph.getConsumerdata(consumer);//获取消费节点的信息
 
-
 	Search search(base.node_num,6);//搜索初始化
+	search.setServerInit(base.node_num);
+	search.runEzSA(search.server,search.server0,consumer, graph,base,edge);
 
-search.start( consumer,graph, base,edge);//开始搜索
+//search.start( consumer,graph, base,edge);//开始搜索
 
 
 	

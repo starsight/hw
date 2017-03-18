@@ -173,7 +173,7 @@ bool Graph::spfa(int s, int t)
 	return dis[t] < INF;
 
 }
-min_max Graph::EK(int s,int t,vector<Path_Need> &path_save)
+min_max Graph::EK(int s,int t,vector<Path_Need> &path_save,int max_need)
 {
 	vector<Path_Need> ().swap(path_save);
 	min_max ret={0,0};
@@ -206,10 +206,21 @@ min_max Graph::EK(int s,int t,vector<Path_Need> &path_save)
 		path_save.push_back(temp);
 		vector<int> ().swap(temp.path);//clear path_temp
 		temp.need=0;
+	//	cout<<ret.flow<<" "<<ret.price<<endl;
+
+
+
 	}
 //	cout << "flow:" << ret.flow << endl;
 //	cout << ret << endl;
-	return ret;
+	if(ret.flow<max_need)
+			{
+				ret.price=INF;
+
+			}
+
+			return ret;
+
 }
 void Graph::getConsumerdata(vector<consumer_information> consumer)
 {
@@ -266,10 +277,7 @@ void Search::start(vector<consumer_information> consumer,Graph graph,base_inform
 	vector<Path_Need> path_need_temp;//temp
 	min_max temp={0,0};
 
-	for(auto it=consumer.begin();it!=consumer.end();it++)
-	{
-		max_need+=(*it).need;
-	}
+
 
 	graph.getNodeDegree();
 	graph.getNodeCap();
@@ -285,7 +293,7 @@ void Search::start(vector<consumer_information> consumer,Graph graph,base_inform
 	int num=comb(wait_for_choose,choose_num);
 	for(int i=0;i<num;i++)
 	{
-		cout<<"第"<<i<<"次"<<endl;
+	//	cout<<"第"<<i<<"次"<<endl;
 
 		//graph.createG(edge);
 		graph.addConsumer(consumer);
@@ -299,9 +307,9 @@ void Search::start(vector<consumer_information> consumer,Graph graph,base_inform
 		//server={0,3,22};
 		graph.addServer(server);
 	//	graph.printGraph();
-		temp=graph.EK(graph.node_num , graph.node_num+1,path_need_temp);
+		temp=graph.EK(graph.node_num , graph.node_num+1,path_need_temp,max_need);
 		//cout<<temp.price<<" "<<temp.flow<<endl;
-		if(temp.price<min_cost&&temp.flow>=max_need)
+		if(temp.price<min_cost)
 			{
 				find_flag=true;
 				vector<Path_Need> ().swap(path_need);
@@ -328,16 +336,16 @@ void Search::start(vector<consumer_information> consumer,Graph graph,base_inform
 				}
 				cout<<"need: "<<(*it).need<<endl;
 			}
-	cout<<"min cost:"<<min_cost<<endl;
-	cout<<"server: ";
-	for(int n=0;n<choose_num;n++)
-		cout<<min_server[n]<<" ";
-	cout<<endl;
-	cout<<"max need:"<<max_need<<endl;
+//	cout<<"min cost:"<<min_cost<<endl;
+//	cout<<"server: ";
+//	for(int n=0;n<choose_num;n++)
+//		cout<<min_server[n]<<" ";
+//	cout<<endl;
+//	cout<<"max need:"<<max_need<<endl;
 	}
 	else
 	{
-		cout<<"NA"<<endl;
+//		cout<<"NA"<<endl;
 	}
 }
 
@@ -369,4 +377,127 @@ string outputData(vector<Path_Need> path_need,bool find_flag)
 	}
 	 return res;
 }
+void Search::setServerInit(int node_num)
+{
+	vector<int> ().swap(server0);
+	for(int i=0;i<node_num;i++)
+	{
+		server0.push_back(i);
+	}
+}
+double Search::random(double start, double end)
+{
+    return start+(end-start)*rand()/(RAND_MAX + 1.0);
+}
 
+vector<int> Search::randSever(int node_num)
+{
+	vector<int> server_rand;
+	vector<int> id;
+	for(int i=0;i<node_num;i++)
+		{
+			id.push_back(i);
+		}
+
+	int node_num_temp=node_num;
+	int server_num;
+	server_num=rand()%int(node_num);//int(random(2,int(node_num*0.5)));
+	//cout<<server_num<<endl;
+	vector <int>::iterator Iter;
+	for(int i=0;i<server_num;i++)
+		{
+			        int in=int(random(0,node_num_temp));//生成0~node_num-1随机数
+			     //   cout<<id[in]<<endl;
+			        node_num_temp--;
+			        server_rand.push_back(id[in]);
+
+
+			        Iter=id.begin()+in;
+			        id.erase(Iter);
+			// cout<<id[in]<<endl;
+		}
+//	for(auto it=server_rand.begin();it!=server_rand.end();it++)
+	//	cout<<*it<<" ";
+	//	cout<<endl;
+	return server_rand;
+
+}
+
+
+int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge)// mo ni tui huo
+{
+	//cout<<"start"<<endl;
+	vector<Path_Need> path_need_temp;//temp
+	min_max res={0,0},pre_res={0,0},new_res={0,0};
+	int co=server0.size();
+	int temperature=10000*co;
+	float zero=1e-2;
+	int iter=5e2;
+	vector<int> tmp_server;
+	int delta_e=0;
+	graph.createG(edge);
+	graph.addConsumer(consumer);
+	graph.addServer(server0);
+	for(auto it=consumer.begin();it!=consumer.end();it++)
+	{
+		max_need+=(*it).need;
+	}
+	pre_res=graph.EK(graph.node_num , graph.node_num+1,path_need_temp,max_need);
+	if(pre_res.price<INF)
+		pre_res.price+=server0.size()*base.server_cost;
+	while(temperature>zero)
+	{
+
+		for(int i=0;i<iter;i++)
+		{
+
+			graph.removeG();
+			graph.createG(edge);
+			graph.addConsumer(consumer);
+			tmp_server=randSever(base.node_num);
+			graph.addServer(tmp_server);
+
+
+
+			new_res=graph.EK(graph.node_num , graph.node_num+1,path_need_temp,max_need);
+			if(new_res.price<INF)
+				new_res.price+=tmp_server.size()*base.server_cost;
+
+
+			delta_e=new_res.price-pre_res.price;
+
+			if(delta_e<0)
+			{
+				find_flag=true;
+				vector<int> ().swap(server);
+				server.swap(tmp_server);
+				vector<Path_Need> ().swap(path_need);
+				path_need.swap(path_need_temp);
+				res=new_res;
+			//	cout<<res.flow<<" ";
+			//	cout<<res.price<<endl;
+				pre_res=new_res;
+			}
+			else
+			{
+				if(exp(-delta_e/temperature)>rand())
+				{
+					vector<int> ().swap(server);
+					server.swap(tmp_server);
+					vector<Path_Need> ().swap(path_need);
+					path_need.swap(path_need_temp);
+					res=new_res;
+				//	cout<<res.price<<endl;
+					pre_res=new_res;
+				}
+			}
+		}
+		temperature=temperature*0.99;
+
+	}
+//	cout<<res.price<<endl;
+//	for(int n=0;n<int(server.size());n++)
+	//		cout<<server[n]<<" ";
+//	cout<<"end"<<endl;
+	return res.price;
+}
