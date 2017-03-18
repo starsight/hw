@@ -16,6 +16,7 @@ void Graph::addEdge(int from, int to, int cap,int cost )
 	edge[edgecount].cost = cost;
 	next[edgecount] = head[from];
 	head[from] = edgecount++;
+	// head--由该点可以到达的边的序号 同时通过next数组，找到所有的这样的边;边的序号越低，添加时间越早，同时也越晚被搜索到
 
 	edge[edgecount].from = to;
 	edge[edgecount].to = from;
@@ -143,29 +144,34 @@ void Graph::addServer(vector<int> server)
 
 bool Graph::spfa(int s, int t)
 {
-	memset(inq, 0, sizeof(inq));
+	
+	memset(inqueue, 0, sizeof(inqueue));
 	memset(dis, 0x3f, sizeof(dis));
 	memset(pre, -1, sizeof(pre));
 	memset(in, 0, sizeof(in));
-	dis[s] = 0; inq[s] = true;
-	int fron = 0, rear = 0;
-	q[rear++] = s;
-	while (fron < rear) {
-		int u = q[fron%MAXNODE]; fron++;
-		inq[u] = false;
-		for (int i = head[u]; i != -1; i = next[i]) {
-			int v= edge[i].to;
+
+	dis[s] = 0; inqueue[s] = true;
+	int front = 0, rear = 0;
+	q[rear++] = s;//q--存放点的队列，队列为空，循环结束
+	while (front < rear) {
+		int u = q[front%MAXNODE]; //循环队列
+		front++;
+		inqueue[u] = false;
+		for (int i = head[u]; i != -1; i = next[i]) {// head--由该点可以到达的边的序号 同时通过next数组，找到所有的这样的边
+			int v= edge[i].to;//第i条边的终点
 			if (edge[i].cap > 0 && dis[v] > dis[u] + edge[i].cost)
 			{
 				dis[v] = dis[u] + edge[i].cost;
-				pre[v] = u; path[v] = i;
-				if (!inq[v])
+				pre[v] = u;  //pre--路径中点v的前一个点u 
+				path[v] = i; //path--对于点v，我应该沿着第i路径走
+				if (!inqueue[v])
 				{
-					in[v]++;
-				//	if (in[v] > edgecount) return true;
-					inq[v] = true;
-					q[rear%MAXNODE] = v; rear++;
-
+					in[v]++;//破负环
+					if (in[v] > edgecount) 
+						return true;
+					inqueue[v] = true;
+					q[rear%MAXNODE] = v; 
+					rear++;
 				}
 			}
 		}
@@ -430,7 +436,7 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 	vector<Path_Need> path_need_temp;//temp
 	min_max res={0,0},pre_res={0,0},new_res={0,0};
 	int co=server0.size();
-	int temperature=10000*co;
+	int temperature=5*co;
 	float zero=1e-2;
 	int iter=5e2;
 	vector<int> tmp_server;

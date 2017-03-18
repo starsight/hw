@@ -84,7 +84,7 @@ class Graph
 		int node_num, edge_num, consumer_num;//节点个数，读入文件的边数，消费节点个数
 		int head[MAXNODE],next[MAX_EDGE_NUM];//邻接列表的head next
 		int pre[MAXNODE], path[MAXNODE], dis[MAXNODE], q[MAXNODE], in[MAXNODE];
-		bool inq[MAXNODE];
+		bool inqueue[MAXNODE];//点是否在队列中
 
 		Edge edge[MAX_EDGE_NUM];//记录生成边的信息
 		std::vector<node_degree> nodecap;
