@@ -137,7 +137,7 @@ class Search
 	void start(vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge);
 	void setServerInit(int node_num);
 	int runEzSA(vector<int> &server,vector<int> server0,vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge);// mo ni tui huo
-	vector<int> randSever(int node_num);
+	vector<int> randSever(Graph graph);
 	double random(double start, double end);
 
 

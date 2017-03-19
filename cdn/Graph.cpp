@@ -84,6 +84,7 @@ void Graph::getNodeDegree()
 }
 void Graph::getRank()
 {
+	vector<node_degree> ().swap(noderank);
 	for (int i=0; i < node_num; i++)
 		{
 			node_degree temp_rank;
@@ -92,7 +93,7 @@ void Graph::getRank()
 			temp_rank.nodeID = i;
 			while (k!= -1)
 			{
-				temp_rank.degree+= int(edge[k].cap*edge[k].cost);
+				temp_rank.degree+= double(edge[k].cap)/double(edge[k].cost);
 				k = next[k];
 			}
 			noderank.push_back(temp_rank);
@@ -359,8 +360,7 @@ string outputData(vector<Path_Need> path_need,bool find_flag)
 {
 	string res;
 	char a[20];
-	if(find_flag==true)
-	 {
+
 		sprintf(a, "%d\n\n",(int)path_need.size());
 
 	 res = a;
@@ -376,11 +376,8 @@ string outputData(vector<Path_Need> path_need,bool find_flag)
 	 	res += a;
 	 	res += "\n";
 	 }
-	 }
-	else
-	{
-		res +="NA";
-	}
+
+
 	 return res;
 }
 void Search::setServerInit(int node_num)
@@ -396,24 +393,26 @@ double Search::random(double start, double end)
     return start+(end-start)*rand()/(RAND_MAX + 1.0);
 }
 
-vector<int> Search::randSever(int node_num)
+vector<int> Search::randSever(Graph graph)
 {
 	vector<int> server_rand;
 	vector<int> id;
-	for(int i=0;i<node_num;i++)
-		{
-			id.push_back(i);
-		}
-
+	int node_num=int(graph.node_num);
 	int node_num_temp=node_num;
 	int server_num;
-	server_num=rand()%int(node_num);//int(random(2,int(node_num*0.5)));
-	//cout<<server_num<<endl;
+	for(int i=0;i<node_num;i++)
+			{
+				//id.push_back(graph.nodecap[i].nodeID);
+					id.push_back(i);
+			//	cout<<id[i]<<" ";
+			}
+	//cout<<endl;
+	server_num=int(random(2,int(graph.consumer_num+1)));
 	vector <int>::iterator Iter;
 	for(int i=0;i<server_num;i++)
 		{
 			        int in=int(random(0,node_num_temp));//生成0~node_num-1随机数
-			     //   cout<<id[in]<<endl;
+			        if(in>=50)cout<<in<<endl;
 			        node_num_temp--;
 			        server_rand.push_back(id[in]);
 
@@ -436,12 +435,13 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 	vector<Path_Need> path_need_temp;//temp
 	min_max res={0,0},pre_res={0,0},new_res={0,0};
 	int co=server0.size();
-        int temperature=100*co;
+        int temperature=5*co;
 	float zero=1e-2;
-	int iter=5e2;
+	int iter=10e2;
 	vector<int> tmp_server;
 	int delta_e=0;
 	graph.createG(edge);
+
 	graph.addConsumer(consumer);
 	graph.addServer(server0);
 	for(auto it=consumer.begin();it!=consumer.end();it++)
@@ -451,16 +451,28 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 	pre_res=graph.EK(graph.node_num , graph.node_num+1,path_need_temp,max_need);
 	if(pre_res.price<INF)
 		pre_res.price+=server0.size()*base.server_cost;
+
+	vector<int> ().swap(server);
+	server.swap(server0);
+	vector<Path_Need> ().swap(path_need);
+	path_need.swap(path_need_temp);
+	res=pre_res;
 	while(temperature>zero)
 	{
+		graph.getRank();
+		for(int i=0;i<graph.noderank.size();i++)
+			{
 
+				cout<< graph.noderank[i].nodeID<<" ";
+			}
+		cout<<endl;
 		for(int i=0;i<iter;i++)
 		{
 
 			graph.removeG();
 			graph.createG(edge);
 			graph.addConsumer(consumer);
-			tmp_server=randSever(base.node_num);
+			tmp_server=randSever(graph);
 			graph.addServer(tmp_server);
 
 
@@ -468,7 +480,7 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 			new_res=graph.EK(graph.node_num , graph.node_num+1,path_need_temp,max_need);
 			if(new_res.price<INF)
 				new_res.price+=tmp_server.size()*base.server_cost;
-
+			//cout<<new_res.price<<endl;
 
 			delta_e=new_res.price-pre_res.price;
 
@@ -480,8 +492,8 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 				vector<Path_Need> ().swap(path_need);
 				path_need.swap(path_need_temp);
 				res=new_res;
-			//	cout<<res.flow<<" ";
-			//	cout<<res.price<<endl;
+				//cout<<res.flow<<" ";
+				//cout<<res.price<<endl;
 				pre_res=new_res;
 			}
 			else
@@ -498,12 +510,13 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 				}
 			}
 		}
-		temperature=temperature*0.99;
+		temperature=temperature*0.8;
 
 	}
-//	cout<<res.price<<endl;
-//	for(int n=0;n<int(server.size());n++)
-	//		cout<<server[n]<<" ";
-//	cout<<"end"<<endl;
+	//cout<<res.price<<endl;
+	//for(int n=0;n<int(server.size());n++)
+		//	cout<<server[n]<<" ";
+	//cout<<"end"<<endl;
 	return res.price;
 }
+
