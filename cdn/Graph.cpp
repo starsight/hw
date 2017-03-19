@@ -208,22 +208,16 @@ min_max Graph::EK(int s,int t,vector<Path_Need> &path_save,int max_need)
 		//cout << endl;
 		ret.price += mini * dis[t];
 		ret.flow += mini;
-		//	cout <<"MINI:"<< mini << endl;
 		temp.need=mini;
 		path_save.push_back(temp);
 		vector<int> ().swap(temp.path);//clear path_temp
 		temp.need=0;
-	//	cout<<ret.flow<<" "<<ret.price<<endl;
-
-
-
 	}
-//	cout << "flow:" << ret.flow << endl;
-//	cout << ret << endl;
+
 	if(ret.flow<max_need)
 			{
 				ret.price=INF;
-
+				vector<Path_Need>().swap(path_save);
 			}
 
 			return ret;
@@ -397,16 +391,14 @@ vector<int> Search::randSever(Graph graph)
 {
 	vector<int> server_rand;
 	vector<int> id;
-	int node_num=int(graph.node_num);
+	int node_num=int(graph.consumer_num);
 	int node_num_temp=node_num;
 	int server_num;
 	for(int i=0;i<node_num;i++)
-			{
-				//id.push_back(graph.nodecap[i].nodeID);
-					id.push_back(i);
-			//	cout<<id[i]<<" ";
-			}
-	//cout<<endl;
+	{
+				id.push_back(graph.consumer_related_Node[i]);
+	}
+
 	server_num=int(random(2,int(graph.consumer_num+1)));
 	vector <int>::iterator Iter;
 	for(int i=0;i<server_num;i++)
@@ -435,9 +427,9 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 	vector<Path_Need> path_need_temp;//temp
 	min_max res={0,0},pre_res={0,0},new_res={0,0};
 	int co=server0.size();
-        int temperature=5*co;
+        int temperature=1*co;
 	float zero=1e-2;
-	int iter=10e2;
+	int iter=20e2;
 	vector<int> tmp_server;
 	int delta_e=0;
 	graph.createG(edge);
@@ -452,20 +444,9 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 	if(pre_res.price<INF)
 		pre_res.price+=server0.size()*base.server_cost;
 
-	vector<int> ().swap(server);
-	server.swap(server0);
-	vector<Path_Need> ().swap(path_need);
-	path_need.swap(path_need_temp);
-	res=pre_res;
 	while(temperature>zero)
 	{
-		graph.getRank();
-		for(int i=0;i<graph.noderank.size();i++)
-			{
 
-				cout<< graph.noderank[i].nodeID<<" ";
-			}
-		cout<<endl;
 		for(int i=0;i<iter;i++)
 		{
 
@@ -498,7 +479,7 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 			}
 			else
 			{
-				if(exp(-delta_e/temperature)>rand())
+				/*if(exp(-delta_e/temperature)>rand())
 				{
 					vector<int> ().swap(server);
 					server.swap(tmp_server);
@@ -507,13 +488,13 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 					res=new_res;
 				//	cout<<res.price<<endl;
 					pre_res=new_res;
-				}
+				}*/
 			}
 		}
 		temperature=temperature*0.8;
 
 	}
-	//cout<<res.price<<endl;
+	cout<<res.price<<endl;
 	//for(int n=0;n<int(server.size());n++)
 		//	cout<<server[n]<<" ";
 	//cout<<"end"<<endl;

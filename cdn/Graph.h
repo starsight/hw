@@ -79,8 +79,9 @@ class Graph
 {
 	private:
 		int  edgecount;//记录边的个数
-		vector<int> consumer_related_Node;//记录与消费点相连的网络节点编号
+
 	public:
+		vector<int> consumer_related_Node;//记录与消费点相连的网络节点编号
 		int node_num, edge_num, consumer_num;//节点个数，读入文件的边数，消费节点个数
 		int head[MAXNODE],next[MAX_EDGE_NUM];//邻接列表的head next
 		int pre[MAXNODE], path[MAXNODE], dis[MAXNODE], q[MAXNODE], in[MAXNODE];
