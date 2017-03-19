@@ -67,8 +67,8 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num,char * filename)
 
 	Search search(base.node_num,6);//搜索初始化
 	search.setServerInit(base.node_num);
-	search.runEzSA(search.server,search.server0,consumer, graph,base,edge);
-
+	int sum = search.runEzSA(search.server,search.server0,consumer, graph,base,edge);
+	cout<<endl<<sum<<endl;
 //search.start( consumer,graph, base,edge);//开始搜索
 
 

@@ -79,8 +79,9 @@ class Graph
 {
 	private:
 		int  edgecount;//记录边的个数
-		vector<int> consumer_related_Node;//记录与消费点相连的网络节点编号
 	public:
+		vector<int> consumer_related_Node;//记录与消费点相连的网络节点编号
+	
 		int node_num, edge_num, consumer_num;//节点个数，读入文件的边数，消费节点个数
 		int head[MAXNODE],next[MAX_EDGE_NUM];//邻接列表的head next
 		int pre[MAXNODE], path[MAXNODE], dis[MAXNODE], q[MAXNODE], in[MAXNODE];
@@ -118,7 +119,7 @@ class Search
 	int wait_for_choose;//待选择的节点数量
 	int choose_num;//服务器数量
 
-	 int a[1000];//用于组合数计算的
+	int a[1000];//用于组合数计算的
 
 	vector<int> temp_save;//临时保存当前计算的组合情况
 	vector<vector<int>> save;//存储所有组合情况
@@ -137,9 +138,10 @@ class Search
 	void start(vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge);
 	void setServerInit(int node_num);
 	int runEzSA(vector<int> &server,vector<int> server0,vector<consumer_information> consumer,Graph graph,base_information base,vector<edge_information> edge);// mo ni tui huo
-	vector<int> randSever(Graph graph);
+	vector<int> randSever(Graph graph,vector<node_degree>& nodecap);
 	double random(double start, double end);
 
+	int weight[MAXNODE];
 
 };
 string outputData(vector<Path_Need> path_need,bool flag);//生成输出的格式

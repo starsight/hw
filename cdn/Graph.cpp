@@ -88,14 +88,18 @@ void Graph::getRank()
 	for (int i=0; i < node_num; i++)
 		{
 			node_degree temp_rank;
+			node_degree temp_degree;
+
 			int k = head[i];
 
 			temp_rank.nodeID = i;
 			while (k!= -1)
 			{
 				temp_rank.degree+= double(edge[k].cap)/double(edge[k].cost);
+				temp_degree.degree+= 1;
 				k = next[k];
 			}
+			temp_rank.degree = temp_rank.degree *temp_degree.degree;
 			noderank.push_back(temp_rank);
 		}
 		sort(noderank.begin(), noderank.end(), node_degree::decrease);
@@ -393,14 +397,14 @@ double Search::random(double start, double end)
     return start+(end-start)*rand()/(RAND_MAX + 1.0);
 }
 
-vector<int> Search::randSever(Graph graph)
+vector<int> Search::randSever(Graph graph,vector<node_degree>& nodecap)
 {
 	vector<int> server_rand;
 	vector<int> id;
 	int node_num=int(graph.node_num);
-	int node_num_temp=node_num;
+	int node_num_temp=graph.consumer_related_Node.size();
 	int server_num;
-	for(int i=0;i<node_num;i++)
+	/*for(int i=0;i<node_num;i++)
 			{
 				//id.push_back(graph.nodecap[i].nodeID);
 					id.push_back(i);
@@ -420,10 +424,56 @@ vector<int> Search::randSever(Graph graph)
 			        Iter=id.begin()+in;
 			        id.erase(Iter);
 			// cout<<id[in]<<endl;
-		}
+		}*/
 //	for(auto it=server_rand.begin();it!=server_rand.end();it++)
 	//	cout<<*it<<" ";
 	//	cout<<endl;
+		
+	for(int i=0;i<graph.consumer_related_Node.size();i++)
+			{
+				//id.push_back(graph.nodecap[i].nodeID);
+					id.push_back(graph.consumer_related_Node[i]);
+			//	cout<<id[i]<<" ";
+			}
+
+//cout<<graph.noderank[0].nodeID<<endl;
+	for(int i=0;i<int(graph.consumer_num/2);)
+			{
+				int in=int(random(0,graph.node_num));
+
+				int j=0;
+				for(;j<graph.consumer_related_Node.size();j++){
+					if(graph.consumer_related_Node[j]==in)
+						break;
+				}
+				if(nodecap[in].degree<0){
+					//cout<<"zero";
+					continue;
+				}
+				i++;
+				if(j>=(graph.consumer_related_Node.size())){
+					node_num_temp++;
+					//cout<<in<<" ";
+						id.push_back(in);
+					//id.push_back(graph.consumer_related_Node[i]);
+				}
+			}
+
+server_num=int(random(int(graph.consumer_num>>2),int(graph.consumer_num)));
+	vector <int>::iterator Iter;
+	for(int i=0;i<server_num;i++)
+		{
+			        int in=int(random(0,node_num_temp));//生成0~node_num-1随机数
+			        if(in>=50)cout<<in<<endl;
+			        node_num_temp--;
+			        server_rand.push_back(id[in]);
+
+
+			        Iter=id.begin()+in;
+			        id.erase(Iter);
+			// cout<<id[in]<<endl;
+		}
+
 	return server_rand;
 
 }
@@ -435,9 +485,9 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 	vector<Path_Need> path_need_temp;//temp
 	min_max res={0,0},pre_res={0,0},new_res={0,0};
 	int co=server0.size();
-        int temperature=5*co;
+    int temperature=1*co;
 	float zero=1e-2;
-	int iter=10e2;
+	int iter=20e2;
 	vector<int> tmp_server;
 	int delta_e=0;
 	graph.createG(edge);
@@ -457,25 +507,37 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 	vector<Path_Need> ().swap(path_need);
 	path_need.swap(path_need_temp);
 	res=pre_res;
+
+	graph.getNodeCap();
+	graph.getRank();
+	//vector<node_degree>::iterator it;
+	vector<node_degree> v;
+	for(auto it=graph.noderank.begin();it!=graph.noderank.end();it++)
+    	v.push_back(*it);
+
+	
+
+	int sum=0;
+
 	while(temperature>zero)
 	{
-		graph.getRank();
-		for(int i=0;i<graph.noderank.size();i++)
+		
+		/*for(int i=0;i<10;i++)
 			{
 
 				cout<< graph.noderank[i].nodeID<<" ";
 			}
-		cout<<endl;
+		cout<<endl;*/
+		
+
 		for(int i=0;i<iter;i++)
 		{
 
 			graph.removeG();
 			graph.createG(edge);
 			graph.addConsumer(consumer);
-			tmp_server=randSever(graph);
+			tmp_server=randSever(graph,v);
 			graph.addServer(tmp_server);
-
-
 
 			new_res=graph.EK(graph.node_num , graph.node_num+1,path_need_temp,max_need);
 			if(new_res.price<INF)
@@ -483,6 +545,24 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 			//cout<<new_res.price<<endl;
 
 			delta_e=new_res.price-pre_res.price;
+
+			sum+=new_res.price;
+			if(i>0){
+				if((int)(sum/(i+1))>=new_res.price){
+					for(int j =0;j<tmp_server.size();j++){
+						//cout<<"++ ";
+						v[tmp_server[j]].degree+=5;
+						
+					}
+				}
+				else{
+					for(int j =0;j<tmp_server.size();j++){
+						//cout<<"-- ";
+						v[tmp_server[j]].degree-=5;
+						
+					}
+				}
+			}
 
 			if(delta_e<0)
 			{
