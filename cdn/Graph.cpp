@@ -75,7 +75,7 @@ void Graph::getNodeDegree()
 		temp_degree.nodeID = i;
 		while (k!= -1)
 		{
-			temp_degree.degree+= 1;
+			temp_degree.degree+= 10;
 			k = next[k];
 		}
 		nodedegree.push_back(temp_degree);
@@ -201,7 +201,7 @@ min_max Graph::EK(int s,int t,vector<Path_Need> &path_save,int max_need)
 	//	cout << t<<"<--";
 		for (int i = t; i != s; i = pre[i]) {
 			//cout << edge[path[i]].from << "<--";
-				temp.path.push_back( edge[path[i]].from);
+			temp.path.push_back( edge[path[i]].from);
 			edge[path[i]].cap -= mini;
 			edge[path[i] ^ 1].cap += mini;
 		}
@@ -218,9 +218,6 @@ min_max Graph::EK(int s,int t,vector<Path_Need> &path_save,int max_need)
 		vector<int> ().swap(temp.path);//clear path_temp
 		temp.need=0;
 	//	cout<<ret.flow<<" "<<ret.price<<endl;
-
-
-
 	}
 //	cout << "flow:" << ret.flow << endl;
 //	cout << ret << endl;
@@ -400,77 +397,37 @@ double Search::random(double start, double end)
 vector<int> Search::randSever(Graph graph,vector<node_degree>& nodecap)
 {
 	vector<int> server_rand;
-	vector<int> id;
+	map<int,int> id;//nodenum innode_num_temp --- nodenum in graph node
 	int node_num=int(graph.node_num);
 	int node_num_temp=graph.consumer_related_Node.size();
 	int server_num;
-	/*for(int i=0;i<node_num;i++)
-			{
-				//id.push_back(graph.nodecap[i].nodeID);
-					id.push_back(i);
-			//	cout<<id[i]<<" ";
-			}
-	//cout<<endl;
-	server_num=int(random(2,int(graph.consumer_num+1)));
-	vector <int>::iterator Iter;
-	for(int i=0;i<server_num;i++)
-		{
-			        int in=int(random(0,node_num_temp));//生成0~node_num-1随机数
-			        if(in>=50)cout<<in<<endl;
-			        node_num_temp--;
-			        server_rand.push_back(id[in]);
-
-
-			        Iter=id.begin()+in;
-			        id.erase(Iter);
-			// cout<<id[in]<<endl;
-		}*/
-//	for(auto it=server_rand.begin();it!=server_rand.end();it++)
-	//	cout<<*it<<" ";
-	//	cout<<endl;
 		
-	for(int i=0;i<graph.consumer_related_Node.size();i++)
+	for(int i=0;i<node_num_temp;i++)
 			{
-				//id.push_back(graph.nodecap[i].nodeID);
-					id.push_back(graph.consumer_related_Node[i]);
-			//	cout<<id[i]<<" ";
+					id[i] = graph.consumer_related_Node[i];
 			}
 
-//cout<<graph.noderank[0].nodeID<<endl;
 	for(int i=0;i<int(graph.consumer_num/2);)
 			{
-				int in=int(random(0,graph.node_num));
-
-				int j=0;
-				for(;j<graph.consumer_related_Node.size();j++){
-					if(graph.consumer_related_Node[j]==in)
-						break;
-				}
-				if(nodecap[in].degree<0){
-					//cout<<"zero";
-					continue;
-				}
-				i++;
-				if(j>=(graph.consumer_related_Node.size())){
+				int randomnum=int(random(0,graph.node_num));
+				
+				if(nodecap[randomnum].degree>0){
+					i++;
+					id[node_num_temp]=randomnum;
 					node_num_temp++;
-					//cout<<in<<" ";
-						id.push_back(in);
-					//id.push_back(graph.consumer_related_Node[i]);
 				}
 			}
 
-server_num=int(random(int(graph.consumer_num>>2),int(graph.consumer_num)));
-	vector <int>::iterator Iter;
+server_num=int(random(int(graph.consumer_num>>2),int(graph.consumer_num*2/3)));
+	map<int,int>::iterator Iter;
 	for(int i=0;i<server_num;i++)
 		{
 			        int in=int(random(0,node_num_temp));//生成0~node_num-1随机数
-			        if(in>=50)cout<<in<<endl;
-			        node_num_temp--;
+			        Iter=id.find(in);
+			        if(Iter!=id.end()){
 			        server_rand.push_back(id[in]);
-
-
-			        Iter=id.begin()+in;
 			        id.erase(Iter);
+			    }
 			// cout<<id[in]<<endl;
 		}
 
@@ -508,7 +465,8 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 	path_need.swap(path_need_temp);
 	res=pre_res;
 
-	graph.getNodeCap();
+	//graph.getNodeCap();
+	//graph.getNodeDegree();
 	graph.getRank();
 	//vector<node_degree>::iterator it;
 	vector<node_degree> v;
@@ -551,14 +509,14 @@ int Search::runEzSA(vector<int> &server,vector<int> server0,vector<consumer_info
 				if((int)(sum/(i+1))>=new_res.price){
 					for(int j =0;j<tmp_server.size();j++){
 						//cout<<"++ ";
-						v[tmp_server[j]].degree+=5;
+						v[tmp_server[j]].degree+=6;
 						
 					}
 				}
 				else{
 					for(int j =0;j<tmp_server.size();j++){
 						//cout<<"-- ";
-						v[tmp_server[j]].degree-=5;
+						v[tmp_server[j]].degree-=3;
 						
 					}
 				}
