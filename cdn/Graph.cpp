@@ -1,4 +1,5 @@
 #include "Graph.h"
+#include "stdafx.h"
 
 
 Graph::Graph(int node_num,int edge_num,int consumer_num) :edgecount(0),node_num(node_num),edge_num(edge_num),consumer_num(consumer_num)
@@ -153,18 +154,18 @@ bool Graph::spfa(int s, int t)
 	dis[s] = 0; inqueue[s] = true;
 	int front = 0, rear = 0;
 	q[rear++] = s;//q--存放点的队列，队列为空，循环结束
-	while (front < rear) {
-		int u = q[front%MAXNODE]; //循环队列
+	while (front < rear) {//循环队列
+		int u = q[front%MAXNODE]; //取出队首
 		front++;
 		inqueue[u] = false;
-		for (int i = head[u]; i != -1; i = next[i]) {// head--由该点可以到达的边的序号 同时通过next数组，找到所有的这样的边
+		for (int i = head[u]; i != -1; i = next[i]) {// head保存顶点为u的第一条出边编号，next保存编号为i的边的下一条出边
 			int v= edge[i].to;//第i条边的终点
 			if (edge[i].cap > 0 && dis[v] > dis[u] + edge[i].cost)
 			{
 				dis[v] = dis[u] + edge[i].cost;
-				pre[v] = u;  //pre--路径中点v的前一个点u 
-				path[v] = i; //path--对于点v，我应该沿着第i路径走
-				if (!inqueue[v])
+				pre[v] = u;  //pre：路径中点v的前一个点u 
+				path[v] = i; //path：到顶点v需通过边i，即下标为v的顶点的入边为edge[i]
+				if (!inqueue[v])//若顶点v未入队，则将v入队
 				{
 					in[v]++;//破负环
 					if (in[v] > edgecount) 
@@ -176,10 +177,10 @@ bool Graph::spfa(int s, int t)
 			}
 		}
 	}
-	return dis[t] < INF;
+	return dis[t] < INF;//若有前向通路，则返回true；（dis[t]=INF表示无前向通路）
 
 }
-min_max Graph::EK(int s,int t,vector<Path_Need> &path_save)
+min_max Graph::EK(int s,int t,vector<Path_Need> &path_save)//path_save为保存路径Path_need的变量
 {
 	vector<Path_Need> ().swap(path_save);
 	min_max ret={0,0};
@@ -187,28 +188,28 @@ min_max Graph::EK(int s,int t,vector<Path_Need> &path_save)
 	while (spfa(s,t)) {
 
 		int mini = INF;
-		for (int i = t; i != s; i = pre[i])
+		for (int i = t; i != s; i = pre[i])//找出路径中最小的余量,作为路径允许的最大流量
 		{
 
-			mini = min(mini, edge[path[i]].cap);
+			mini = min(mini, edge[path[i]].cap);//顶点i的入边edge[path[i]]
 
 		}
 	//	cout << t<<"<--";
 		for (int i = t; i != s; i = pre[i]) {
 			//cout << edge[path[i]].from << "<--";
-				temp.path.push_back( edge[path[i]].from);
-			edge[path[i]].cap -= mini;
+			temp.path.push_back( edge[path[i]].from);//保存路径？
+			edge[path[i]].cap -= mini;//处理反向弧
 			edge[path[i] ^ 1].cap += mini;
 		}
-		temp.path.pop_back();
-		reverse(temp.path.begin(),temp.path.end());
-		int consumer_id=find(consumer_related_Node.begin(),consumer_related_Node.end(),*(temp.path.end()-1))-consumer_related_Node.begin();
-				temp.path.push_back(consumer_id);
+		temp.path.pop_back();//删除虚汇点
+		reverse(temp.path.begin(),temp.path.end());//倒序
+		int consumer_id=find(consumer_related_Node.begin(),consumer_related_Node.end(),*(temp.path.end()-1))-consumer_related_Node.begin();//查找consumer的id
+		temp.path.push_back(consumer_id);
 		//cout << endl;
-		ret.price += mini * dis[t];
+		ret.price += mini * dis[t];//累计费用和流量
 		ret.flow += mini;
 		//	cout <<"MINI:"<< mini << endl;
-		temp.need=mini;
+		temp.need=mini;				//最大可行流
 		path_save.push_back(temp);
 		vector<int> ().swap(temp.path);//clear path_temp
 		temp.need=0;

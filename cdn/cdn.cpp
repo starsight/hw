@@ -2,6 +2,7 @@
 #include "lib_io.h"
 #include "lib_time.h"
 #include "stdio.h"
+#include "stdafx.h"
 
 int main(int argc, char *argv[])
 {
